@@ -1,0 +1,513 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ee">
+  <title>Studyspace — make room to focus</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #20231f;
+      --muted: #777b72;
+      --line: #e7e8df;
+      --paper: #fff;
+      --canvas: #f5f4ee;
+      --green: #355b42;
+      --lime: #d7ed9b;
+      --orange: #e8a56e;
+      --rose: #edc6bd;
+      --shadow: 0 12px 35px rgb(38 48 36 / 6%);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app { max-width: 1440px; margin: auto; padding: 28px 5.2%; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 42px; }
+    .brand { display: flex; align-items: center; gap: 11px; font-size: 19px; font-weight: 750; letter-spacing: -.7px; }
+    .brand-mark { width: 35px; height: 35px; display: grid; place-items: center; border-radius: 12px; color: #fff; background: var(--green); font-size: 18px; }
+    .today { color: var(--muted); font-size: 13px; }
+    .welcome { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-bottom: 26px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; }
+    h1 { margin: 5px 0 4px; font-size: clamp(29px, 4vw, 42px); letter-spacing: -1.7px; line-height: 1.12; }
+    .welcome p { margin: 0; color: var(--muted); }
+    .date-pill { white-space: nowrap; padding: 10px 15px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: #575c53; font-size: 13px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 22px; }
+    .stat { display: flex; align-items: center; gap: 14px; min-height: 90px; padding: 17px 19px; border: 1px solid var(--line); border-radius: 16px; background: var(--paper); }
+    .stat-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 14px; background: #edf2e4; font-size: 20px; }
+    .stat:nth-child(2) .stat-icon { background: #f9eee2; }
+    .stat:nth-child(3) .stat-icon { background: #f5e9e7; }
+    .stat-value { display: block; font-size: 23px; font-weight: 750; letter-spacing: -.7px; line-height: 1.15; }
+    .stat-label { color: var(--muted); font-size: 12px; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(290px, .85fr); gap: 20px; align-items: start; }
+    .column { display: grid; gap: 20px; min-width: 0; }
+    .card { padding: 22px; border: 1px solid var(--line); border-radius: 19px; background: var(--paper); box-shadow: var(--shadow); }
+    .card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    h2 { margin: 0; font-size: 17px; letter-spacing: -.4px; }
+    .subtle { color: var(--muted); font-size: 12px; }
+    .task-list { display: grid; }
+    .task { display: grid; grid-template-columns: 21px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 13px 0; border-top: 1px solid #f0f0eb; }
+    .task-check { width: 19px; height: 19px; accent-color: var(--green); cursor: pointer; }
+    .task-title { overflow-wrap: anywhere; font-weight: 600; }
+    .task.done .task-title { color: #a0a49b; text-decoration: line-through; }
+    .task-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 4px; color: var(--muted); font-size: 11px; }
+    .tag { padding: 3px 8px; border-radius: 99px; background: #f0f1eb; color: #5e655a; font-size: 10px; font-weight: 700; }
+    .tag.high { background: #fae9e4; color: #a4513b; }
+    .tag.medium { background: #fbf0df; color: #93662e; }
+    .tag.low { background: #eaf1e7; color: #4a7253; }
+    .delete-task { border: 0; background: transparent; color: #a4a79e; font-size: 18px; padding: 3px 6px; }
+    .delete-task:hover { color: #b94b38; }
+    .filters { display: flex; gap: 6px; }
+    .filter { border: 0; border-radius: 99px; background: transparent; padding: 6px 10px; color: var(--muted); font-size: 11px; }
+    .filter.active { background: #edf1e8; color: var(--green); font-weight: 750; }
+    .primary, .secondary { border: 0; border-radius: 10px; padding: 10px 14px; font-size: 12px; font-weight: 700; }
+    .primary { background: var(--green); color: #fff; }
+    .primary:hover { background: #294a35; }
+    .secondary { background: #f1f2eb; color: var(--green); }
+    .add-task-form { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(118px, .8fr) minmax(108px, .65fr) auto; gap: 8px; padding-top: 13px; border-top: 1px solid var(--line); }
+    input, select, textarea { min-width: 0; border: 1px solid #e5e7df; border-radius: 9px; background: #fff; color: var(--ink); padding: 10px 11px; outline: none; }
+    input:focus, select:focus, textarea:focus { border-color: #7d9a77; box-shadow: 0 0 0 3px rgb(95 128 90 / 12%); }
+    input::placeholder, textarea::placeholder { color: #a0a39b; }
+    .focus-card { position: relative; overflow: hidden; background: var(--green); color: #fff; border: 0; }
+    .focus-card::after { position: absolute; content: ""; width: 190px; height: 190px; right: -72px; top: -85px; border: 1px solid rgb(255 255 255 / 10%); border-radius: 50%; box-shadow: 0 0 0 24px rgb(255 255 255 / 4%), 0 0 0 48px rgb(255 255 255 / 3%); pointer-events: none; }
+    .focus-card .eyebrow { color: #c9dfa2; }
+    .focus-card .subtle { color: #cfdbcf; }
+    .timer { margin: 20px 0 15px; text-align: center; font-size: clamp(55px, 7vw, 70px); font-weight: 650; letter-spacing: -4px; line-height: 1; font-variant-numeric: tabular-nums; }
+    .timer-label { text-align: center; color: #d2dfd2; font-size: 12px; }
+    .timer-actions { display: flex; justify-content: center; gap: 9px; margin-top: 19px; }
+    .timer-actions button { min-width: 83px; border: 1px solid rgb(255 255 255 / 25%); border-radius: 10px; padding: 9px 13px; background: transparent; color: #fff; font-size: 12px; font-weight: 700; }
+    .timer-actions .timer-start { border-color: var(--lime); background: var(--lime); color: var(--ink); }
+    .focus-footer { margin-top: 18px; padding-top: 13px; border-top: 1px solid rgb(255 255 255 / 17%); color: #d2dfd2; text-align: center; font-size: 11px; }
+    .notes-card .card-head { margin-bottom: 12px; }
+    .note-form { display: grid; gap: 9px; }
+    .note-form textarea { min-height: 82px; resize: vertical; }
+    .note-tools { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .upload-label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; color: #5e655a; cursor: pointer; font-size: 11px; font-weight: 650; }
+    .upload-label:hover { background: #f8f8f4; }
+    .upload-label input { display: none; }
+    .record-button.recording { color: #b34135; border-color: #edc6bd; background: #fff4f1; }
+    .selected-files { color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+    .notes-list { display: grid; gap: 10px; margin-top: 17px; }
+    .note { padding: 12px; border: 1px solid #eff0e9; border-radius: 12px; background: #fcfcf9; }
+    .note-text { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+    .note-date { margin-top: 7px; color: #92968d; font-size: 10px; }
+    .note-attachments { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+    .attachment { display: inline-flex; align-items: center; gap: 5px; max-width: 100%; padding: 5px 8px; border: 1px solid #e8e9e2; border-radius: 8px; color: #56624f; background: #fff; text-decoration: none; font-size: 10px; }
+    .attachment span { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .attachment img { width: 42px; height: 32px; border-radius: 4px; object-fit: cover; }
+    .note-delete { float: right; border: 0; background: transparent; color: #a1a49b; font-size: 14px; }
+    .empty { padding: 22px 10px; text-align: center; color: #92968d; font-size: 12px; }
+    .toast { position: fixed; right: 24px; bottom: 24px; z-index: 3; padding: 12px 16px; border-radius: 11px; background: #202b21; color: #fff; box-shadow: var(--shadow); font-size: 12px; opacity: 0; transform: translateY(8px); transition: .2s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    footer { padding: 28px 0 8px; color: #979a91; text-align: center; font-size: 11px; }
+    @media (max-width: 850px) {
+      .app { padding: 23px 4%; }
+      .layout { grid-template-columns: 1fr; }
+      .column.right { grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; }
+    }
+    @media (max-width: 600px) {
+      .app { padding: 18px 4%; }
+      .topbar { margin-bottom: 30px; }
+      .today { display: none; }
+      .welcome { align-items: start; flex-direction: column; gap: 12px; }
+      .stats { gap: 8px; }
+      .stat { min-height: 78px; padding: 12px 10px; gap: 8px; }
+      .stat-icon { width: 34px; height: 34px; border-radius: 11px; font-size: 16px; }
+      .stat-value { font-size: 19px; }
+      .stat-label { font-size: 10px; }
+      .card { padding: 17px; }
+      .column.right { grid-template-columns: 1fr; }
+      .add-task-form { grid-template-columns: 1fr 1fr; }
+      .add-task-form input:first-child { grid-column: 1 / -1; }
+      .add-task-form button { min-height: 40px; }
+      .filters { gap: 0; }
+      .filter { padding: 6px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span> studyspace</div>
+      <div class="today" id="today-label"></div>
+    </header>
+
+    <section class="welcome" aria-label="Welcome">
+      <div>
+        <div class="eyebrow">Your little corner of focus</div>
+        <h1>Make room to focus.</h1>
+        <p>One thing at a time. You’re doing great.</p>
+      </div>
+      <div class="date-pill" id="date-pill"></div>
+    </section>
+
+    <section class="stats" aria-label="Study overview">
+      <div class="stat"><div class="stat-icon" aria-hidden="true">✓</div><div><span class="stat-value" id="task-count">0/0</span><span class="stat-label">tasks completed</span></div></div>
+      <div class="stat"><div class="stat-icon" aria-hidden="true">◷</div><div><span class="stat-value" id="focus-count">0m</span><span class="stat-label">focused today</span></div></div>
+      <div class="stat"><div class="stat-icon" aria-hidden="true">↗</div><div><span class="stat-value" id="due-count">0</span><span class="stat-label">upcoming deadlines</span></div></div>
+    </section>
+
+    <div class="layout">
+      <section class="column">
+        <article class="card">
+          <div class="card-head">
+            <div><h2>Your tasks</h2><div class="subtle">A clear plan makes a calmer mind.</div></div>
+            <div class="filters" role="group" aria-label="Filter tasks">
+              <button class="filter active" data-filter="all">All</button>
+              <button class="filter" data-filter="active">To do</button>
+              <button class="filter" data-filter="done">Done</button>
+            </div>
+          </div>
+          <div class="task-list" id="task-list"></div>
+          <form class="add-task-form" id="task-form">
+            <input id="task-title" aria-label="Task name" placeholder="What do you need to study?" maxlength="100" required>
+            <input id="task-date" aria-label="Due date" type="date">
+            <select id="task-priority" aria-label="Priority">
+              <option value="medium">Medium priority</option>
+              <option value="high">High priority</option>
+              <option value="low">Low priority</option>
+            </select>
+            <button class="primary" type="submit">＋ Add task</button>
+          </form>
+        </article>
+        <article class="card notes-card">
+          <div class="card-head">
+            <div><h2>Notes &amp; captures</h2><div class="subtle">Save a thought, snap, or sound before it slips away.</div></div>
+          </div>
+          <form class="note-form" id="note-form">
+            <textarea id="note-text" aria-label="Write a note" placeholder="A thought, a reminder, a tiny breakthrough…" maxlength="2000"></textarea>
+            <div class="note-tools">
+              <div>
+                <label class="upload-label">＋ Attach files<input id="file-input" type="file" multiple accept="image/*,audio/*,video/*,.pdf,.txt,.doc,.docx,.ppt,.pptx,.xls,.xlsx"></label>
+                <button class="upload-label record-button" type="button" id="record-button">● Record audio</button>
+              </div>
+              <button class="primary" type="submit">Save note</button>
+            </div>
+            <div class="selected-files" id="selected-files" aria-live="polite"></div>
+          </form>
+          <div class="notes-list" id="notes-list"></div>
+        </article>
+      </section>
+
+      <aside class="column right">
+        <article class="card focus-card">
+          <div class="eyebrow">A little focus goes a long way</div>
+          <div class="card-head" style="margin-top:5px;margin-bottom:0"><h2>Focus session</h2><span class="subtle">Pomodoro · 25 min</span></div>
+          <div class="timer" id="timer" aria-live="off">25:00</div>
+          <div class="timer-label" id="timer-label">Ready when you are</div>
+          <div class="timer-actions">
+            <button class="timer-start" id="timer-toggle">Start focus</button>
+            <button id="timer-reset">Reset</button>
+          </div>
+          <div class="focus-footer">Put your phone away. You’ve got this ✨</div>
+        </article>
+        <article class="card">
+          <div class="card-head" style="margin-bottom:8px"><div><h2>Coming up</h2><div class="subtle">Deadlines on your mind.</div></div><span aria-hidden="true">📅</span></div>
+          <div id="upcoming-list"></div>
+        </article>
+      </aside>
+    </div>
+    <footer>A gentle reminder: progress is progress, however small 🌱</footer>
+  </main>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    (() => {
+      const $ = (selector) => document.querySelector(selector);
+      const today = new Date();
+      const dateOptions = { weekday: "long", month: "long", day: "numeric" };
+      $("#today-label").textContent = today.toLocaleDateString(undefined, dateOptions);
+      $("#date-pill").textContent = today.toLocaleDateString(undefined, { month: "long", day: "numeric", year: "numeric" });
+
+      const load = (key, fallback) => {
+        try { return JSON.parse(localStorage.getItem(key)) || fallback; }
+        catch { return fallback; }
+      };
+      let tasks = load("studyspace-tasks", []);
+      let notes = load("studyspace-notes", []);
+      let focusMinutes = load("studyspace-focus-minutes", 0);
+      let filter = "all";
+      let pendingFiles = [];
+      let recorder;
+      let recordingChunks = [];
+      let recordingStream;
+      let remaining = 25 * 60;
+      let timerInterval = null;
+      const attachmentUrls = new Map();
+      const save = () => {
+        localStorage.setItem("studyspace-tasks", JSON.stringify(tasks));
+        localStorage.setItem("studyspace-notes", JSON.stringify(notes));
+        localStorage.setItem("studyspace-focus-minutes", JSON.stringify(focusMinutes));
+      };
+      const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (char) => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      })[char]);
+      const formatDate = (date) => new Date(`${date}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      const dateStatus = (date) => {
+        if (!date) return "";
+        const due = new Date(`${date}T00:00:00`);
+        const days = Math.round((due - new Date(new Date().toDateString())) / 86400000);
+        if (days < 0) return `Overdue · ${formatDate(date)}`;
+        if (days === 0) return "Due today";
+        if (days === 1) return "Due tomorrow";
+        return `Due ${formatDate(date)}`;
+      };
+      const toast = (message) => {
+        const el = $("#toast");
+        el.textContent = message;
+        el.classList.add("show");
+        clearTimeout(toast.timeout);
+        toast.timeout = setTimeout(() => el.classList.remove("show"), 2400);
+      };
+      const updateStats = () => {
+        const done = tasks.filter((task) => task.done).length;
+        $("#task-count").textContent = `${done}/${tasks.length}`;
+        $("#focus-count").textContent = focusMinutes >= 60
+          ? `${Math.floor(focusMinutes / 60)}h ${focusMinutes % 60 ? `${focusMinutes % 60}m` : ""}`
+          : `${focusMinutes}m`;
+        const upcoming = tasks.filter((task) => !task.done && task.date && task.date >= new Date().toISOString().slice(0, 10)).length;
+        $("#due-count").textContent = upcoming;
+      };
+      const renderTasks = () => {
+        const visible = tasks.filter((task) => filter === "all" || (filter === "active" ? !task.done : task.done));
+        $("#task-list").innerHTML = visible.length ? visible.map((task) => `
+          <div class="task ${task.done ? "done" : ""}">
+            <input class="task-check" type="checkbox" aria-label="Mark ${escapeHtml(task.title)} complete" data-toggle="${task.id}" ${task.done ? "checked" : ""}>
+            <div><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta">
+              ${task.date ? `<span>${escapeHtml(dateStatus(task.date))}</span>` : ""}
+              <span class="tag ${escapeHtml(task.priority)}">${escapeHtml(task.priority)} priority</span>
+            </div></div>
+            <button class="delete-task" type="button" aria-label="Delete ${escapeHtml(task.title)}" data-delete="${task.id}">×</button>
+          </div>`).join("") : `<div class="empty">${tasks.length ? "Nothing in this list just yet." : "No tasks yet — add one small thing to get started."}</div>`;
+        $("#upcoming-list").innerHTML = tasks.filter((task) => !task.done && task.date)
+          .sort((a, b) => a.date.localeCompare(b.date)).slice(0, 4).map((task) => `
+            <div class="task" style="grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:12px 0">
+              <div><div class="task-title">${escapeHtml(task.title)}</div><div class="task-meta"><span class="tag ${escapeHtml(task.priority)}">${escapeHtml(task.priority)}</span></div></div>
+              <span class="subtle">${escapeHtml(dateStatus(task.date))}</span>
+            </div>`).join("") || `<div class="empty">No deadlines on the horizon. Enjoy the breathing room!</div>`;
+        updateStats();
+      };
+      const database = new Promise((resolve) => {
+        if (!("indexedDB" in window)) return resolve(null);
+        const request = indexedDB.open("studyspace-files", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("attachments", { keyPath: "id" });
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => resolve(null);
+      });
+      const withStore = async (mode, action) => {
+        const db = await database;
+        if (!db) return null;
+        return new Promise((resolve) => {
+          const transaction = db.transaction("attachments", mode);
+          const result = action(transaction.objectStore("attachments"));
+          transaction.oncomplete = () => resolve(result?.result ?? result ?? null);
+          transaction.onerror = () => resolve(null);
+        });
+      };
+      const renderNotes = async () => {
+        const list = $("#notes-list");
+        if (!notes.length) {
+          list.innerHTML = `<div class="empty">Your notes and little discoveries will live here.</div>`;
+          return;
+        }
+        list.innerHTML = notes.slice().reverse().map((note) => `
+          <article class="note">
+            <button class="note-delete" type="button" aria-label="Delete note" data-note-delete="${note.id}">×</button>
+            ${note.text ? `<div class="note-text">${escapeHtml(note.text)}</div>` : ""}
+            <div class="note-date">${escapeHtml(new Date(note.createdAt).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }))}</div>
+            ${note.files?.length ? `<div class="note-attachments" data-note-files="${note.id}">${note.files.map((file) => `<span class="attachment">${escapeHtml(file.type.startsWith("image/") ? "▧" : file.type.startsWith("audio/") ? "♫" : "↗")} <span>${escapeHtml(file.name)}</span></span>`).join("")}</div>` : ""}
+          </article>`).join("");
+        for (const note of notes) {
+          for (const file of note.files || []) {
+            if (attachmentUrls.has(file.id)) continue;
+            const stored = await withStore("readonly", (store) => store.get(file.id));
+            if (!stored?.blob) continue;
+            const url = URL.createObjectURL(stored.blob);
+            attachmentUrls.set(file.id, url);
+            const container = list.querySelector(`[data-note-files="${note.id}"]`);
+            const item = container?.querySelectorAll(".attachment")[note.files.indexOf(file)];
+            if (!item) continue;
+            const label = item.querySelector("span");
+            const link = document.createElement("a");
+            link.className = "attachment";
+            link.href = url;
+            link.download = file.name;
+            if (file.type.startsWith("image/")) {
+              const image = document.createElement("img");
+              image.src = url;
+              image.alt = file.name;
+              link.append(image);
+            } else if (file.type.startsWith("audio/")) {
+              link.textContent = "♫ ";
+              const audio = document.createElement("audio");
+              audio.src = url;
+              audio.controls = true;
+              audio.setAttribute("aria-label", file.name);
+              link.append(audio);
+            }
+            if (label) link.append(label);
+            else link.append(document.createTextNode(file.name));
+            item.replaceWith(link);
+          }
+        }
+      };
+      $("#task-form").addEventListener("submit", (event) => {
+        event.preventDefault();
+        const title = $("#task-title").value.trim();
+        if (!title) return;
+        tasks.push({ id: crypto.randomUUID(), title, date: $("#task-date").value, priority: $("#task-priority").value, done: false });
+        save();
+        renderTasks();
+        event.target.reset();
+        $("#task-title").focus();
+        toast("Task added. You’ve got this!");
+      });
+      $("#task-list").addEventListener("change", (event) => {
+        const id = event.target.dataset.toggle;
+        if (!id) return;
+        const task = tasks.find((item) => item.id === id);
+        if (task) task.done = event.target.checked;
+        save();
+        renderTasks();
+      });
+      $("#task-list").addEventListener("click", (event) => {
+        const id = event.target.dataset.delete;
+        if (!id) return;
+        tasks = tasks.filter((task) => task.id !== id);
+        save();
+        renderTasks();
+      });
+      document.querySelector(".filters").addEventListener("click", (event) => {
+        const button = event.target.closest("[data-filter]");
+        if (!button) return;
+        filter = button.dataset.filter;
+        document.querySelectorAll(".filter").forEach((item) => item.classList.toggle("active", item === button));
+        renderTasks();
+      });
+      $("#file-input").addEventListener("change", (event) => {
+        pendingFiles = [...pendingFiles, ...event.target.files];
+        $("#selected-files").textContent = pendingFiles.length ? `${pendingFiles.length} file${pendingFiles.length === 1 ? "" : "s"} ready to attach` : "";
+        event.target.value = "";
+      });
+      $("#note-form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const text = $("#note-text").value.trim();
+        if (!text && !pendingFiles.length) {
+          toast("Write a note or attach something first.");
+          return;
+        }
+        const note = { id: crypto.randomUUID(), text, createdAt: new Date().toISOString(), files: [] };
+        for (const file of pendingFiles) {
+          const id = crypto.randomUUID();
+          const metadata = { id, name: file.name, type: file.type || "application/octet-stream" };
+          await withStore("readwrite", (store) => store.put({ id, blob: file }));
+          note.files.push(metadata);
+        }
+        notes.push(note);
+        save();
+        pendingFiles = [];
+        $("#note-text").value = "";
+        $("#selected-files").textContent = "";
+        await renderNotes();
+        toast("Saved to your notes.");
+      });
+      $("#notes-list").addEventListener("click", async (event) => {
+        const button = event.target.closest("[data-note-delete]");
+        if (!button) return;
+        const note = notes.find((item) => item.id === button.dataset.noteDelete);
+        for (const file of note?.files || []) {
+          await withStore("readwrite", (store) => store.delete(file.id));
+          const url = attachmentUrls.get(file.id);
+          if (url) URL.revokeObjectURL(url);
+          attachmentUrls.delete(file.id);
+        }
+        notes = notes.filter((item) => item.id !== button.dataset.noteDelete);
+        save();
+        renderNotes();
+      });
+      const updateTimer = () => {
+        $("#timer").textContent = `${String(Math.floor(remaining / 60)).padStart(2, "0")}:${String(remaining % 60).padStart(2, "0")}`;
+      };
+      $("#timer-toggle").addEventListener("click", () => {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+          $("#timer-toggle").textContent = "Resume";
+          $("#timer-label").textContent = "Paused — take a breath";
+          return;
+        }
+        $("#timer-toggle").textContent = "Pause";
+        $("#timer-label").textContent = "You’re in your focus zone";
+        timerInterval = setInterval(() => {
+          remaining -= 1;
+          updateTimer();
+          if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            focusMinutes += 25;
+            save();
+            updateStats();
+            remaining = 25 * 60;
+            updateTimer();
+            $("#timer-toggle").textContent = "Start focus";
+            $("#timer-label").textContent = "Session complete — lovely work!";
+            toast("Focus session complete. Take a little break!");
+            if ("Notification" in window && Notification.permission === "granted") new Notification("Studyspace", { body: "Your focus session is complete. Take a little break!" });
+          }
+        }, 1000);
+      });
+      $("#timer-reset").addEventListener("click", () => {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        remaining = 25 * 60;
+        updateTimer();
+        $("#timer-toggle").textContent = "Start focus";
+        $("#timer-label").textContent = "Ready when you are";
+      });
+      $("#record-button").addEventListener("click", async (event) => {
+        const button = event.currentTarget;
+        if (recorder?.state === "recording") {
+          recorder.stop();
+          return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+          toast("Audio recording isn’t supported in this browser.");
+          return;
+        }
+        try {
+          recordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          recorder = new MediaRecorder(recordingStream);
+          recordingChunks = [];
+          recorder.ondataavailable = (chunkEvent) => recordingChunks.push(chunkEvent.data);
+          recorder.onstop = () => {
+            const blob = new Blob(recordingChunks, { type: recorder.mimeType || "audio/webm" });
+            pendingFiles.push(new File([blob], `study-recording-${new Date().toLocaleTimeString().replace(/:/g, "-")}.webm`, { type: blob.type }));
+            $("#selected-files").textContent = `${pendingFiles.length} file${pendingFiles.length === 1 ? "" : "s"} ready to attach`;
+            recordingStream?.getTracks().forEach((track) => track.stop());
+            recordingStream = null;
+            button.classList.remove("recording");
+            button.textContent = "● Record audio";
+            toast("Recording ready — save it with your note.");
+          };
+          recorder.start();
+          button.classList.add("recording");
+          button.textContent = "■ Stop recording";
+          toast("Recording… tap again to finish.");
+        } catch {
+          toast("Microphone access was not available.");
+        }
+      });
+      renderTasks();
+      renderNotes();
+      updateTimer();
+    })();
+  </script>
+</body>
+</html>
