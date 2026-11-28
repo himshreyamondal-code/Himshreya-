@@ -11,7 +11,7 @@ A calm, all-in-one study dashboard that lives in a single HTML file.
 ![JavaScript](https://img.shields.io/badge/JavaScript-355b42?style=for-the-badge&logo=javascript&logoColor=d7ed9b)
 ![Dependencies](https://img.shields.io/badge/dependencies-0-d7ed9b?style=for-the-badge&labelColor=355b42)
 
-[**✨ Live Demo**](https://YOUR-USERNAME.github.io/YOUR-REPO/)
+[**✨ Live Demo**](https://himshreyamondal-code.github.io/Himshreya-/)
 
 </div>
 
@@ -38,8 +38,8 @@ everything you need and nothing you don't.
 No installs. No build step. No fuss.
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPO.git
-cd YOUR-REPO
+git clone https://github.com/himshreyamondal-code/Himshreya-.git
+cd Himshreya-
 open index.html   # or just double-click it
 ```
 
